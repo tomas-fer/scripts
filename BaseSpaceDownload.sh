@@ -13,11 +13,29 @@
 #Specify the project ID here
 projectID=
 
+#Test if prerequisites are installed
+for i in curl parallel; do
+	if ! [ -x "$(command -v $i)" ]; then
+		echo "Please install '$i' first" && exit
+	fi
+done
+
+#Test if result files exist
+for i in sampleTable.txt fileTable.txt filesList.txt samplesList.txt JSONproject.txt JSONsamples.txt; do
+	if [[ -f $i ]]; then
+		echo The file '$i' already exists. Delete it or rename before running this script again... && exit
+	fi
+done
+
 #Samples from projects
-#get info about samples
+#Get info about samples
 echo -e "\nGetting info about samples in the project ${projectID}..."
 curl -L -J --config ./token_header.txt https://api.basespace.illumina.com/v1pre3/projects/${projectID}/samples?Limit=1000 2>/dev/null > JSONproject.txt
-#get sample numbers
+#Check whether the project exists
+if grep -q Error "JSONproject.txt"; do
+	echo -e "\nYou are not permitted to access the project '$projectID'\n" && exit
+fi
+#Get sample numbers
 grep -Po '"Href":.*?[^\\]",' JSONproject.txt | grep "/samples" | awk -F\" '{print $4}'| awk -F\/ '{print $3}' > samplesList.txt
 grep -Po '"SampleId":.*?[^\\]",' JSONproject.txt | awk -F\" '{print $4}' > sampleID.txt
 grep -Po '"LibraryName":.*?[^\\]",' JSONproject.txt | awk -F\" '{print $4}' > libName.txt
@@ -76,8 +94,8 @@ cat fileTable.txt | sed '1d' | while read line; do
 	fi
 done
 
-echo -e "\nFinished doownloading" `cat filesList.txt | wc -l` "files from the project '$expName' (ID: $projectID)"
-exit
+echo -e "\nFinished downloading" `cat filesList.txt | wc -l` "files from the project '$expName' (ID: $projectID)"
+exit #Remove if you want to continue with getting info about a run
 
 #Download information about specific run
 #Specify the run ID here
