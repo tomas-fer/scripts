@@ -8,7 +8,7 @@
 #----------------------------------------------------------------------------
 
 #Specify the project ID here
-projectID=70305241
+projectID=
 
 #Samples from projects
 #get info about samples
@@ -78,7 +78,7 @@ exit
 
 #Download information about specific run
 #Specify the run ID here
-runID=76397324
+runID=
 
 #Run details (total yield, number of clusters, total reads, total reads PF...)
 echo "Getting info about run ${runID}"
