@@ -1,14 +1,17 @@
 #Download FASTQ files from BaseSpace using API
 #All fastq.gz files from a project are downloaded
-#Access token must be in the text file (token_header.txt) whitch contain one line text:                                            #
-#header = "x-access-token: <your-token-here>
+#Access token must be in the text file (token_header.txt) whitch contain one line text:
+#header = "x-access-token: <your-token-here>"
+#
+#REQUIRES: GNU parallel, curl
+#
 #----------------------------------------------------------------------------
 #Tomas Fer, Dept. of Botany, Charles University, Prague, Czech Republic, 2019
 #tomas.fer@natur.cuni.cz
 #----------------------------------------------------------------------------
 
 #Specify the project ID here
-projectID=
+projectID=70305241
 
 #Samples from projects
 #get info about samples
@@ -50,23 +53,23 @@ rm filesNames.txt filesSize.txt
 
 #Download individual files using parallel
 echo -e "\nDownloading fastq.gz files..."
-exit
+
 cat filesList.txt | parallel 'curl -L -J --config token_header.txt https://api.basespace.illumina.com/v1pre3/files/{}/content -O'
 
 #Check file sizes of downloaded files (if they match sizes stated by BaseSpace)
 #Download incorrectly downloaded files
 echo -e "\nChecking whether file sizes are correct..."
 cat fileTable.txt | sed '1d' | while read line; do
-	fileName=$(cut -f1 <<< $line) #file name
-	fileSizeDown=$(stat -c %s `cut -f1 <<< $line`) #file size of the downloaded file
-	fileSizeBS=$(cut -f2 <<< $line) #file size extracted from BaseSpace JSON
-	fileBS=$(cut -f3 <<< $line) #file BaseSpace ID
+	fileName=$(awk '{ print $1 }' <<< $line) #file name
+	fileSizeDown=$(stat -c %s `awk '{ print $1 }' <<< $line`) #file size of the downloaded file
+	fileSizeBS=$(awk '{ print $2 }' <<< $line) #file size extracted from BaseSpace JSON
+	fileBS=$(awk '{ print $3 }' <<< $line) #file BaseSpace ID
 	if [[ ${fileSizeDown} -eq ${fileSizeBS} ]]; then
 		echo ${fileName} size OK
 	else
 		echo -e "${fileName} size incorrect. Downloading again...\n"
 		mv ${fileName} ${fileName}.bak 2>/dev/null #make a backup of the wrongly downloaded file
-		until [[ $(stat -c %s `cut -f1 <<< $line` 2>/dev/null) -eq ${fileSizeBS} ]]; do
+		until [[ $(stat -c %s `awk '{ print $1 }' <<< $line` 2>/dev/null) -eq ${fileSizeBS} ]]; do
 			curl -L -J --config token_header.txt https://api.basespace.illumina.com/v1pre3/files/${fileBS}/content -O
 			echo
 		done
