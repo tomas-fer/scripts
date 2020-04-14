@@ -102,7 +102,7 @@ for file in $(cat list.txt); do
 	echo -e "...indexing"
 	samtools index ${file}_sorted.bam
 	cp ${file}_sorted.bam $path/fullplastome/${file}.bam
-	cp ${file}_sorted.bam $path/fullplastome/${file}.bam.bai
+	cp ${file}_sorted.bam.bai $path/fullplastome/${file}.bam.bai
 	kindel -m $mincov -t $majthres ${file}_sorted.bam > ${file}.fasta
 	#change name in fasta file
 	sed -i '1d' ${file}.fasta #delete first line
