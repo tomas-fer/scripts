@@ -1,4 +1,4 @@
-#EXTRACT sequences (in FASTA format) from full plastome provided in GenBenbank format
+#EXTRACT sequences (in FASTA format) from full plastome provided in GenBank format
 #- all features (CDS, tRNA, rRNA), separated to exons
 #- all sequences among them (introns, spacers)
 
