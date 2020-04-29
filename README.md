@@ -25,3 +25,7 @@ __cpDNA_mapping.sh__
 __extractGBplastome.sh__
   * extract sequences (in FASTA format) from full plastome provided in GenBank format: (1) all features (CDS, tRNA, rRNA), separated to exons, (2) all sequences among them (introns, spacers)
   
+__BaseSpaceDownload.sh__
+  * download FASTQ files from Illumina BaseSpace using API
+  * reports basic information about Illumina run
+  * requirements: GNU parallel, curl
