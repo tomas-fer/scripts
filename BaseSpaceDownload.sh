@@ -1,12 +1,13 @@
 #Download FASTQ files from BaseSpace using API
 #All fastq.gz files from a project are downloaded
-#Access token must be in the text file (token_header.txt) whitch contain one line text:
+#Optionally, some run statistics is reported
+#Access token must be in the text file (token_header.txt) containing one line of text:
 #header = "x-access-token: <your-token-here>"
-#
+#projectID (and runID) must be specified within the script (see below)
 #REQUIRES: GNU parallel, curl
 #
 #----------------------------------------------------------------------------
-#Tomas Fer, Dept. of Botany, Charles University, Prague, Czech Republic, 2019
+#Tomas Fer, Dept. of Botany, Charles University, Prague, Czech Republic, 2020
 #tomas.fer@natur.cuni.cz
 #----------------------------------------------------------------------------
 
@@ -105,17 +106,17 @@ runID=
 echo "Getting info about run ${runID}"
 #Get info about the run
 curl -L -J --config ./token_header.txt https://api.basespace.illumina.com/v1pre3/runs/${runID} 2>/dev/null > JSONrun.txt
-
-grep -Po '"YieldTotal":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' > yield.txt
-grep -Po '"PercentPf":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' > percent.txt
-grep -Po '"ReadsTotal":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' > reads.txt
-grep -Po '"ReadsPfTotal":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' > readsPF.txt
-grep -Po '"Clusters":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' > clusters.txt
-grep -Po '"ClustersPf":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' > clustersPF.txt
-
+grep -Po '"ExperimentName":.*?[^\\]"' JSONrun.txt | head -n1 | awk -F\" '{print $4}' | sed 's/[:,]//g' > rundata.txt
+grep -Po '"PlatformName":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $4}' | sed 's/[:,]//g' >> rundata.txt
+grep -Po '"YieldTotal":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' >> rundata.txt
+grep -Po '"PercentPf":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' >> rundata.txt
+grep -Po '"Clusters":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' >> rundata.txt
+grep -Po '"ClustersPf":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,}]//g' >> rundata.txt
+grep -Po '"PercentGtQ30":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' >> rundata.txt
+grep -Po '"PercentGtQ30R1":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' >> rundata.txt
+grep -Po '"PercentGtQ30R2":.*?[^\\]"' JSONrun.txt | awk -F\" '{print $3}' | sed 's/[:,]//g' >> rundata.txt
 #make a table
-echo -e "TotalYield\tClusters\tClustersPF\tReadsTotal\tReadsTotalPF\tPercentPF" > runTable.txt
-paste yield.txt clusters.txt clustersPF.txt reads.txt readsPF.txt percent.txt >> runTable.txt
-rm yield.txt clusters.txt clustersPF.txt reads.txt readsPF.txt percent.txt
-
+echo -e "ExperimentName\nPlatformName\nTotalYield[Gbp]\nClusters\nClustersPF\nPercentPF\nPercentGtQ30\nPercentGtQ30R1\nPercentGtQ30R2" > runHeader.txt
+paste runHeader.txt rundata.txt > runTable.txt
+rm rundata.txt runHeader.txt
 echo -e "Summary of the run $runID is in 'runTable.txt'"
