@@ -35,9 +35,10 @@ grep -A1 -E "CDS|tRNA " $1.modif > resultCDS.txt
 #add '--'' as last line (to mimic grep output after later file merging)
 #select lines containing rRNA and two following lines (the line with gene name)
 echo "--" >> resultCDS.txt
-#replace two or more spaces by ',', remove lines starting with ',/locus' or ',/gene' and select lines containing rRNA and one following line
+#replace two or more spaces by ',', remove lines starting with ',/locus' or ',/gene' or '/old_locus_tag' and select lines containing rRNA and one following line
 #(this is to remove other descriptors and get product' descriptor as the next line to rRNA)
-sed 's/ \{2,\}/,/g' $1.modif | sed '/^,\/locus/ d' | sed '/^,\/gene/ d' | grep -A1 -E ",rRNA" --no-group-separator | sed "s/,rRNA/--\n,rRNA/" | sed 1d > resultR.txt
+sed 's/ \{2,\}/,/g' $1.modif | sed '/^,\/locus/ d' | sed '/^,\/gene/ d' | sed '/^,\/old_locus_tag/ d' | grep -A1 -E ",rRNA" --no-group-separator | sed "s/,rRNA/--\n,rRNA/" | sed 1d > resultR.txt
+rm $1.modif
 #grep -A2 -E "rRNA " $1 > resultR.txt
 sed -i 's/ ribosomal RNA//' resultR.txt
 #replace spaces by ','
