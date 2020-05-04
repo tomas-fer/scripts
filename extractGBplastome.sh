@@ -1,32 +1,43 @@
-#EXTRACT sequences (in FASTA format) from full plastome provided in GenBank format
+#EXTRACT sequences (in FASTA format) from full plastome provided in GenBenbank format
 #- all features (CDS, tRNA, rRNA), separated to exons
 #- all sequences among them (introns, spacers)
 
+#PREPARE reference for HybPhyloMaker
+#- modify names
+#- delete regions shorter than $short (defined below!)
+
 #USAGE: ./extractGBplastome.sh plastomeFile.gb
 #------------------------------------------------------------------------------------
-#Tomas Fer, 2018
+#Tomas Fer, 2018, 2020
 #Department of Botany, Charles University, Prague, Czech Republic
 #tomas.fer@natur.cuni.cz
 #------------------------------------------------------------------------------------
 
 #KNOWN BUGS:
-#- problem with parsing GenBank files if CDS line is on multiple lines
+#- ???
+
+#regions shorter than this value will be removed
+short=200
 
 name=`echo $1 | cut -d'.' -f1`
 #get just the sequence
-echo "Extracting sequence..."
+echo -e "\nExtracting sequence..."
 #take everything after 'ORIGIN', remove numbers, remove spaces, remove '//', remove CRs, remove LFs
 sed -e '1,/ORIGIN/d' $1 | sed 's/[0-9]*//g' | sed 's/ //g' | sed 's/\/\///' | sed 's/\x0D$//' | tr -d '\n' > ${name}.fasta
 
+#Modify GB file (in order to put join feature information on a single line)
+#delete everything between ',' and any number [0-9], i.e. putting the join description of some CDS on a single line
+perl -0777 -pe 's/(,)\s*([0-9])/$1$2/g' $1 > $1.modif #'perl -0777' = do not any splitting
+
 echo "Extracting features..."
 #select lines containing CDS, tRNA and one following line (the line with gene name)
-grep -A1 -E "CDS|tRNA " $1 > resultCDS.txt
+grep -A1 -E "CDS|tRNA " $1.modif > resultCDS.txt
 #add '--'' as last line (to mimic grep output after later file merging)
 #select lines containing rRNA and two following lines (the line with gene name)
 echo "--" >> resultCDS.txt
 #replace two or more spaces by ',', remove lines starting with ',/locus' or ',/gene' and select lines containing rRNA and one following line
 #(this is to remove other descriptors and get product' descriptor as the next line to rRNA)
-sed 's/ \{2,\}/,/g' $1 | sed '/^,\/locus/ d' | sed '/^,\/gene/ d' | grep -A1 -E ",rRNA" > resultR.txt
+sed 's/ \{2,\}/,/g' $1.modif | sed '/^,\/locus/ d' | sed '/^,\/gene/ d' | grep -A1 -E ",rRNA" --no-group-separator | sed "s/,rRNA/--\n,rRNA/" | sed 1d > resultR.txt
 #grep -A2 -E "rRNA " $1 > resultR.txt
 sed -i 's/ ribosomal RNA//' resultR.txt
 #replace spaces by ','
@@ -151,3 +162,49 @@ done
 echo -e "feature\tstart\tstop\tlength\tname" > header.txt
 cat header.txt finalResultSorted.txt > ${name}_plastomeFeaturePositions.txt
 rm header.txt finalResultSorted.txt
+
+#modifying reference for the use with HybPhyloMaker
+echo "Modifying reference for HybPhyloMaker..."
+#1. separate to types (tRNA, rRNA, CDS, non, CDS+non)
+grep "tRNA$" -A1 --no-group-separator ${name}_reference.fasta > ${name}_reference_tRNA.fasta
+grep "rRNA$" -A1 --no-group-separator ${name}_reference.fasta > ${name}_reference_rRNA.fasta
+grep "CDS$" -A1 --no-group-separator ${name}_reference.fasta > ${name}_reference_CDS.fasta
+grep "non$" -A1 --no-group-separator ${name}_reference.fasta > ${name}_reference_non.fasta
+grep -e "CDS$" -e "non$" -A1 --no-group-separator ${name}_reference.fasta > ${name}_reference_CDSnon.fasta
+#2. modify names
+#first sed command replaces last occurrence of '_' by 'zzz'
+sed 's/\(.*\)_/\1zzz/; s/_/exon/3; s/_/exon/3; s/-/XXX/; s/\./yy/' ${name}_reference_tRNA.fasta > ${name}_reference_tRNAHPM.fasta
+sed 's/\(.*\)_/\1zzz/; s/_/exon/3; s/_/exon/3; s/-/XXX/; s/\./yy/' ${name}_reference_rRNA.fasta > ${name}_reference_rRNAHPM.fasta
+sed 's/\(.*\)_/\1zzz/; s/_/exon/3; s/_/exon/3; s/-/XXX/; s/\./yy/' ${name}_reference_CDS.fasta > ${name}_reference_CDSHPM.fasta
+sed 's/\(.*\)_/\1zzz/; s/_/exon/3; s/_/exon/3; s/-/XXX/; s/\./yy/' ${name}_reference_non.fasta > ${name}_reference_nonHPM.fasta
+sed 's/\(.*\)_/\1zzz/; s/_/exon/3; s/_/exon/3; s/-/XXX/; s/\./yy/' ${name}_reference_CDSnon.fasta > ${name}_reference_CDSnonHPM.fasta
+#3. remove regions shorter than 200 bp
+grep '^[^>].\{200\}' -B1 --no-group-separator ${name}_reference_tRNAHPM.fasta > ${name}_reference_tRNAHPM200.fasta
+grep '^[^>].\{200\}' -B1 --no-group-separator ${name}_reference_rRNAHPM.fasta > ${name}_reference_rRNAHPM200.fasta
+grep '^[^>].\{200\}' -B1 --no-group-separator ${name}_reference_CDSHPM.fasta > ${name}_reference_CDSHPM200.fasta
+grep '^[^>].\{200\}' -B1 --no-group-separator ${name}_reference_nonHPM.fasta > ${name}_reference_nonHPM200.fasta
+grep '^[^>].\{200\}' -B1 --no-group-separator ${name}_reference_CDSnonHPM.fasta > ${name}_reference_CDSnonHPM200.fasta
+
+#statistics
+echo "Calculating nr of regions..."
+#full reference
+echo -e "CDS\nnon\ntRNA\nrRNA" > ${name}_statHeader.txt
+grep "CDS$" ${name}_reference.fasta | wc -l > ${name}_statD.txt
+grep "non$" ${name}_reference.fasta | wc -l >> ${name}_statD.txt
+grep "tRNA$" ${name}_reference.fasta | wc -l >> ${name}_statD.txt
+grep "rRNA$" ${name}_reference.fasta | wc -l >> ${name}_statD.txt
+paste ${name}_statHeader.txt ${name}_statD.txt > ${name}_statT.txt
+rm ${name}_statHeader.txt ${name}_statD.txt
+
+#after short removal
+grep "CDS$" ${name}_reference_CDSHPM200.fasta | wc -l > ${name}_statD.txt
+grep "non$" ${name}_reference_nonHPM200.fasta | wc -l >> ${name}_statD.txt
+grep "tRNA$" ${name}_reference_tRNAHPM200.fasta | wc -l >> ${name}_statD.txt
+grep "rRNA$" ${name}_reference_rRNAHPM200.fasta | wc -l >> ${name}_statD.txt
+paste ${name}_statT.txt ${name}_statD.txt > ${name}_statF.txt
+rm ${name}_statT.txt ${name}_statD.txt
+echo -e "type\tfull\tlonger200" > header.txt
+cat header.txt ${name}_statF.txt > ${name}_stat.txt
+rm header.txt ${name}_statF.txt
+
+echo -e "FINISHED\n"
