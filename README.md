@@ -29,3 +29,8 @@ __BaseSpaceDownload.sh__
   * download FASTQ files from Illumina BaseSpace using API
   * reports basic information about Illumina run
   * requirements: GNU parallel, curl
+
+__PhyPartsMETA.sh__
+  * creates PhyParts PieCharts plot for set of gene trees and a species tree (on MetaCentrum)
+  * optionally builds ASTRAL tree
+  * requirements: phyparts, phyparts piecharts, newick utilities
