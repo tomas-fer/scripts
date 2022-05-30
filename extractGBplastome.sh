@@ -14,7 +14,17 @@
 #------------------------------------------------------------------------------------
 
 #KNOWN BUGS:
-#- ???
+#1. limited working in case the '/gene' descriptor is missing in CDS description (like, e.g., in MK460223)
+#   in this case this script requires 'product.txt' for proper modification to gene name ('/gene' descriptor is added)
+#   however, some '/product' descriptions matching appropriate gene names have to be added/modified to 'product.txt'
+#   known problem: 'RNA polymerase beta subunit' or 'RNA polymerase beta' describes rpoB, rpoC1 and rpoC2 - manual check necessary!!!
+#   known problem: some CDS have '/product' description as 'no product string in file'
+#   also, if tRNAs and rRNAs are not annotated in GB file, some of the non-coding regions extracted by this script include them
+#2. Does not properly work for plastomes of parazitic plants, e.g. HG514460
+#   in this case only remaining functional genes are extracted (those annotated as CDS)
+#   non-coding regions then contain non-coding parts as well as non-functional genes (i.e. genes with '/pseudo')
+#   tRNAs are extracted both functional and pseudo
+
 
 #regions shorter than this value will be removed
 short=200
@@ -29,12 +39,38 @@ sed -e '1,/ORIGIN/d' $1 | sed 's/[0-9]*//g' | sed 's/ //g' | sed 's/\/\///' | se
 #delete everything between ',' and any number [0-9], i.e. putting the join description of some CDS on a single line
 perl -0777 -pe 's/(,)\s*([0-9])/$1$2/g' $1 > $1.modif #'perl -0777' = do not any splitting
 
+# Modify GB file in case there are no '/gene' descriptors for CDS
+if [ "$(grep "/gene" $1 | wc -l)" -lt 20 ]; then
+	echo "Converting '/products' to '/genes'..."
+	# modify long names of '/product' (the case of 'ribulose 1,5-bisphosphate carboxylase/oxygenase large subunit')
+	perl -0777 -pe 's/(oxygenase)\s*(large)/$1 $2/g' $1.modif > tmp && mv tmp $1.modif
+	# change '/product' to gene name according to product.txt
+	cat product.txt | while read -r a b; do
+		c=$(echo "$b" | sed 's/\//\\\//g') #change '/' to '\/' before sed on the next line
+		sed -i "s/\"$c\"/\"$a\"/" $1.modif
+	done
+	# delete EOL on lines with 'note'
+	sed -i '/note/ { N; s/\n// }' $1.modif
+	# remove unnecessary lines
+	sed -i '/\/note/ d' $1.modif
+	sed -i '/\/trans_splicing/ d' $1.modif
+	sed -i '/\/codon_start/ d' $1.modif
+	sed -i '/\/transl/ d' $1.modif
+	sed -i '/locus_tag/ d' $1.modif
+	sed -i '/\/exception/ d' $1.modif
+	# change '/product' to '/gene'
+	sed -i 's/\/product/\/gene/' $1.modif
+fi
+
 echo "Extracting features..."
 #select lines containing CDS, tRNA and one following line (the line with gene name)
-grep -A1 -E "CDS|tRNA " $1.modif > resultCDS.txt
+#CDS is surrounded by spaces ( CDS ) to avoid capturing the string from AA translation part
+grep -A1 -E " CDS |tRNA " $1.modif > resultCDS.txt
 #add '--'' as last line (to mimic grep output after later file merging)
 #select lines containing rRNA and two following lines (the line with gene name)
 echo "--" >> resultCDS.txt
+#remove spaces in gene names if any
+sed -i '/gene/s/ //g' resultCDS.txt
 #replace two or more spaces by ',', remove lines starting with ',/locus' or ',/gene' or '/old_locus_tag' and select lines containing rRNA and one following line
 #(this is to remove other descriptors and get product' descriptor as the next line to rRNA)
 sed 's/ \{2,\}/,/g' $1.modif | sed '/^,\/locus/ d' | sed '/^,\/gene/ d' | sed '/^,\/old_locus_tag/ d' | grep -A1 -E ",rRNA" --no-group-separator | sed "s/,rRNA/--\n,rRNA/" | sed 1d > resultR.txt
@@ -74,8 +110,8 @@ sed -i 's/gene=//' result.txt
 sed -i 's/product=//' result.txt
 #remove double quotes
 sed -i 's/\"//g' result.txt
-#delete last character on last line (which is an excessive ',')
-sed -i '$ s/.$//' result.txt
+#delete last character on last line (if it is an excessive ',')
+sed -i '$s/,$//' result.txt
 #add newline at the end of the file
 sed -i '$a\' result.txt
 #replace '-' by 'x'
