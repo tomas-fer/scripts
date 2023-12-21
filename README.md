@@ -35,3 +35,7 @@ __PhyPartsMETA.sh__
   * creates PhyParts PieCharts plot for set of gene trees and a species tree (on MetaCentrum)
   * optionally builds ASTRAL tree
   * requirements: phyparts, phyparts piecharts, newick utilities
+
+__makeREsummary.sh__
+  * calculate number of reads/proportion of all identified repeat types in RepeatExplorer cluster annotation file
+  * based on annotations in the 5th (automatic) or 7th (final) column
