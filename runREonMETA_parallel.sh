@@ -30,7 +30,7 @@ touch submitREjobs.sh
 for sample in $(cat list.txt); do
 	echo '#!/bin/bash' >> RE_${sample}.sh
 	echo '#----------------MetaCentrum----------------' >> RE_${sample}.sh
-	echo '#PBS -l walltime=24:00:00' >> RE_${sample}.sh
+	echo '#PBS -l walltime=48:00:00' >> RE_${sample}.sh
 	echo '#PBS -l select=1:ncpus=16:mem=128gb:scratch_local=64gb' >> RE_${sample}.sh
 	echo '#PBS -j oe' >> RE_${sample}.sh
 	echo '#PBS -o /storage/'"$server/home/$LOGNAME" >> RE_${sample}.sh
