@@ -8,7 +8,9 @@
 #--------------------------------------------------------------------------------------------
 #Creates individual job files for running RepeatExplorer
 #The list of samples is in the file 'list.txt' in the $folder specified below,
-#suffix can be also specified
+#$suffix can be also specified
+#Also specify read subsampling to defined number of reads (--sample option of RepeatExplorer)
+#by setting the value of $subsample below
 #Input files (pair of fastq.gz) - ${sample}${suffix}_R{1,2}.fastq.gz
 #are in subfolders ($sample) in $folder
 #i.e., this is easy to run in case the input was created with 'outputUNMAPPEDfomBAMasFASTQ.sh'
@@ -18,12 +20,13 @@
 #- ${sample}_CLUSTER_TABLE.csv
 #
 #Tomas Fer, 2025, tomas.fer@natur.cuni.cz
-#v.0.0.1
+#v.0.0.2
 #--------------------------------------------------------------------------------------------
 
 server=brno2
 folder="/storage/brno12-cerit/home/tomasfer/Zingiberaceae_RE/BAM"
 suffix="_unmapped"
+subsample=200000
 cd ${folder}
 touch submitREjobs.sh
 #loop over list of samples
@@ -40,6 +43,7 @@ for sample in $(cat list.txt); do
 	echo 'folder='"${folder}" >> RE_${sample}.sh
 	echo 'sample='"${sample}" >> RE_${sample}.sh
 	echo 'suffix='"${suffix}" >> RE_${sample}.sh
+	echo 'subsample='"${subsample}" >> RE_${sample}.sh
 	echo '#download singularity image' >> RE_${sample}.sh
 	echo 'echo -e "\nDownloading RE singularity image..."' >> RE_${sample}.sh
 	echo 'singularity pull repex_tarean_0.3.12.sif library://repeatexplorer/default/repex_tarean:0.3.12-7a7dc9e' >> RE_${sample}.sh
@@ -66,7 +70,7 @@ for sample in $(cat list.txt); do
 	echo 'seqtk seq -A ${sample}${suffix}_merged.fastq > ${sample}${suffix}_merged.fasta' >> RE_${sample}.sh
 	echo '#run RepeatExplorer (and create a logfile)' >> RE_${sample}.sh
 	echo 'echo -e "\nRunning RE..."' >> RE_${sample}.sh
-	echo 'singularity exec -e --bind ${PWD}:/data/ repex_tarean seqclust -C -l RE_${sample}.log -p -v /data/${sample} /data/${sample}${suffix}_merged.fasta' >> RE_${sample}.sh
+	echo 'singularity exec -e --bind ${PWD}:/data/ repex_tarean seqclust -s ${subsample} -C -l RE_${sample}.log -p -v /data/${sample} /data/${sample}${suffix}_merged.fasta' >> RE_${sample}.sh
 	echo '#copy annotation history and logfile back home' >> RE_${sample}.sh
 	echo 'cp ${sample}/CLUSTER_TABLE.csv ${folder}/${sample}/${sample}_CLUSTER_TABLE.csv' >> RE_${sample}.sh
 	echo 'cp RE_${sample}.log ${folder}/${sample}' >> RE_${sample}.sh
