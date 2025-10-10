@@ -9,7 +9,7 @@
 #Creates individual job files for running RepeatExplorer
 #The list of samples is in the file 'list.txt' in the $folder specified below,
 #$suffix can be also specified
-#Also specify read subsampling to defined number of reads (--sample option of RepeatExplorer)
+#Also specify read subsampling to defined number of reads, i.e. NOT read pairs (--sample option of RepeatExplorer)
 #by setting the value of $subsample below
 #Input files (pair of fastq.gz) - ${sample}${suffix}_R{1,2}.fastq.gz
 #are in subfolders ($sample) in $folder
@@ -20,7 +20,7 @@
 #- ${sample}_CLUSTER_TABLE.csv
 #
 #Tomas Fer, 2025, tomas.fer@natur.cuni.cz
-#v.0.0.2
+#v.0.0.3
 #--------------------------------------------------------------------------------------------
 
 server=brno2
