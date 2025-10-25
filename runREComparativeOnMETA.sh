@@ -25,17 +25,25 @@
 #After RepeatExplorer run, this script takes two output tables and uses 'plot_comparative_clustering_summary.R'
 #to create a PDF summary plot (see https://github.com/kavonrtep/revis)
 #(this requires 'optparse' package to be installed in /storage/$server/home/$LOGNAME/Rpackages44)
+#Furthermore, the script extracts creates NJ trees for every cluster (based on observed/expected number of edges between species)
+#see Vitales et al. 2020. Reconstructing phylogenetic relationships based on repeat sequence similarities
+#and creates consensus network(s) using phangorn:::consensusNet() R function
+#networks are created for 'prob' values from 0.05 to 0.15 (step 0.01)
+#i.e., the proportion a split has to be present in all trees to be represented in the network
+#this uses the R script 'REphylo.R' that has to be in /storage/home/${LOGNAME}/HybSeqSource
+#(this requires 'phangorn' package to be installed in /storage/$server/home/$LOGNAME/Rpackages44)
 #
 #OUTPUT:
-#- re_output_comparative.tar.gz
-#- RE_comparative.log
-#- comparative_CLUSTER_TABLE.csv
-#- COMPARATIVE_ANALYSIS_COUNTS.csv
-#- comparative_summary.png
-#- re_comparative_20colors.pdf
+#- re_output_comparative.tar.gz        full results (compressed)
+#- RE_comparative.log                  RepeatExplorer2 log
+#- comparative_CLUSTER_TABLE.csv       automatic cluster annotation
+#- COMPARATIVE_ANALYSIS_COUNTS.csv     nr. reads per cluster and sample
+#- comparative_summary.png             basic summary plot
+#- re_comparative_20colors.pdf         color summary plot reflecting sample genome size
+#- OEnumberEdges                       folder with NJ trees and consensus network(s)
 #
 #Tomas Fer, 2025, tomas.fer@natur.cuni.cz
-#v.0.0.1
+#v.0.0.2
 #--------------------------------------------------------------------------------------------
 
 #Specify this before running the script!!!
@@ -55,9 +63,6 @@ singularity pull repex_tarean_0.3.12.sif library://repeatexplorer/default/repex_
 #make singularity image
 echo "Building RE singularity image..."
 singularity build --sandbox repex_tarean repex_tarean_0.3.12.sif
-#verify build
-#singularity exec repex_tarean seqclust --help
-
 module add seqtk/1.5
 
 #prepare data (from filtered fastq.gz)
@@ -99,9 +104,30 @@ echo -e "\nCreating plots..."
 #cp ${folder}/plot_comparative_clustering_summary.R .
 wget https://raw.githubusercontent.com/kavonrtep/revis/refs/heads/master/plot_comparative_clustering_summary.R
 chmod +x plot_comparative_clustering_summary.R
+#add R and path to library
 export R_LIBS="/storage/$server/home/$LOGNAME/Rpackages44"
 module add r/4.4.0-gcc-10.2.1-ssuwpvb
 ./plot_comparative_clustering_summary.R --cluster_table=re_output_comparative${subsample}/CLUSTER_TABLE.csv --comparative_counts=re_output_comparative${subsample}/COMPARATIVE_ANALYSIS_COUNTS.csv --number_of_colors=20 -g listGS.txt --output=re_comparative${subsample}_20colors.pdf
+
+#extract data for phylogenetic tree and copy back home
+nrsamples=$(cat list.txt | wc -l)
+cd re_output_comparative${subsample}/seqclust/clustering/clusters
+mkdir OEnumberEdges${subsample}
+for i in $(ls -d dir*); do
+	cp $i/observed_expected_number_of_edges.csv OEnumberEdges${subsample}/${i}.csv
+done
+cd OEnumberEdges${subsample}
+#change acronymes to full names (in all *.csv files)
+cat ../../../../../listComparative.txt | while read a b; do
+	sed -i "s/$b/$a/" dir_CL*.csv
+done
+#make NJ trees for every cluster
+cp /storage/${server}/home/${LOGNAME}/HybSeqSource/REphylo.R .
+chmod +x REphylo.R
+./REphylo.R $nrsamples
+cd ..
+cp -r OEnumberEdges${subsample} ${folder}/
+cd ../../../..
 
 #copy comparative and annotation results back home
 cp RE_comparative${subsample}.log ${folder}/
