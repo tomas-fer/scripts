@@ -1,14 +1,26 @@
+#!/bin/bash
+#----------------MetaCentrum----------------
+#PBS -l walltime=1:0:0
+#PBS -l select=1:ncpus=1:mem=1gb:scratch_local=1gb
+#PBS -j oe
+#PBS -N RE_summary
+#PBS -m abe
+#--------------------------------------------------------------------------------------------
+#Summarize results of RepeatExplorer2 runs for multiple samples in specified '$folder'
 #Calculate number of reads/proportion of all identified repeat types in RepeatExplorer cluster annotation file
 #Based on annotations in the 5th (automatic) or 7th (final) column
 #Annotation must follow the standards of RepeatExplorer, i.e. always start with 'All' etc.
 #Proportion is calculated based on number of nuclear reads (i.e. after cp/mt reads removal)
 #Size is corrected to the genome size in Mb/1C (provide an integer, i.e. whole number)
-
-#Tomas Fer, 2022
+#Requires a file 'listGS.txt' with two TAB separated columns: sample name and genome size (1C in Mbp)
+#(stored in '$folder'
+#
+#Tomas Fer, 2022-2025
 #tomas.fer@natur.cuni.cz
-#Version: 0.3 (2022-07-08)
+#Version: 0.5 (2025-10-30)
+#--------------------------------------------------------------------------------------------
 
-#Usage: ./makeREsummary.sh annotationtype filename genomeSizeMb1C
+#Local usage: ./makeREsummary.sh annotationtype filename genomeSizeMb1C
 #e.g. ./makeREsummary.sh a CLUSTER_TABLE.csv 1361 #summary of automatic annotation (i.e., 5th column)
 #e.g. ./makeREsummary.sh f CLUSTER_TABLE.csv 1361 #summary of final annotation (i.e., 7th column)
 
@@ -18,10 +30,20 @@
 #filename_sumprop.txt - summary of reads/proportions/sizes(Mb) of all repeat types
 #filename_sumpropsimple.txt - the same as the previous but with simplified repeat names
 #filename_sumpropgen.txt - summary of reads/proportions/sizes(Mb) of basic repeat types
+#RE_stat.txt - read statistics for all samples
+#RE_sumpropgenMb.txt - summary of basic repeat types for all samples
+#RE_sumpropsimpleMb.txt - summary of all repeat types for all samples
+#REgen.pdf - barplot of basic repeat types for all samples
+#REgenPerc.pdf - percentage barplot of basic repeat types for all samples
+#REsimple.pdf - barplot of all repeat types for all samples
+#REsimplePerc.pdf - percentage barplot of all repeat types for all samples
 
+#Specify folder (full path in MetaCentrum)
+folder="/storage/brno12-cerit/home/tomasfer/PicrisOlympica_RE"
 annot=a
-folder="/storage/brno12-cerit/home/tomasfer/Zingiberaceae_RE/BAM"
-#loop over list of samples
+
+cd ${folder}
+#loop over a list of samples
 cat listGS.txt | while read -r sample gs; do
 	cd $sample
 	#Check if input file exists
@@ -141,6 +163,9 @@ cat listGS.txt | while read -r sample gs; do
 done
 
 #Summary table of all samples
+echo -e "\nSummarizing all samples..."
+#create headers
+echo -e "Creating headers..."
 echo -e "Species" > RE_stat.txt
 echo -e "All reads" >> RE_stat.txt
 echo -e "Top clusters reads" >> RE_stat.txt
@@ -163,8 +188,10 @@ echo -e "rDNA" >> RE_sumpropgenMb.txt
 echo -e "UnclassifiedRepeats" >> RE_sumpropgenMb.txt
 echo -e "smallClusters" >> RE_sumpropgenMb.txt
 echo -e "singlets" >> RE_sumpropgenMb.txt
-
+#loop over all samples and append results
+echo -e "Merging data..."
 for file in $(cat listGS.txt | cut -f1); do
+	echo -e "...${file}"
 	#1. Stat
 	echo $file > ${file}_stat.txt
 	cat ${file}/${file}_stat.txt | cut -f2 >> ${file}_stat.txt
@@ -181,10 +208,14 @@ for file in $(cat listGS.txt | cut -f1); do
 	paste RE_sumpropgenMb.txt ${file}_sumpropgenMb.txt > tmp && mv tmp RE_sumpropgenMb.txt
 	rm ${file}_sumpropgenMb.txt
 done
-#Remove 2nd column (containg initial NAs only)
+#Remove 2nd column from RE_sumpropsimpleMb.txt (containg initial NAs only)
 cat RE_sumpropsimpleMb.txt | cut --complement -f2 > tmp && mv tmp RE_sumpropsimpleMb.txt
-#Rename 
+#Rename 'All' to 'UnclassifiedRepeats' in RE_sumpropsimpleMb.txt
 sed -i 's/All/UnclassifiedRepeats/' RE_sumpropsimpleMb.txt
 
 #Make a plot using R
+echo -e "\nCreating plots..."
+module add r/4.4.0-gcc-10.2.1-ssuwpvb
 R --slave -f REplot.R
+
+echo -e "\nFinished RE results summary...\n"
