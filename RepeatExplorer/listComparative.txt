@@ -1,0 +1,5 @@
+GenusA-species1_S001	GAS1	1511
+GenusA-species2_S002	GAS2	1637
+GenusB-species1_S003	GBS1	2055
+GenusB-species2_S004	GBS2	2201
+GenusC-species1_S005	GCS1	763
