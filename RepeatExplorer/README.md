@@ -1,9 +1,9 @@
 # Instructions for running RepeatExplorer2 on MetaCentrum
-(see REonMetaCentrum.txt for detailed descriptions)
+(see [REonMetaCentrum.txt](REonMetaCentrum.txt) for detailed descriptions)
 ---
 __outputUNMAPPEDfomBAMasFASTQ.sh__
   * creates FASTQ.gz files with unmapped reads only
-  * works on BAM files from HybPhyloMaker
+  * works on BAM files from [HybPhyloMaker](https://github.com/tomas-fer/HybPhyloMaker)
 
 __makeUnmappedReadsSummaryMETA.sh__
   * summary of the previous step
@@ -11,14 +11,14 @@ __makeUnmappedReadsSummaryMETA.sh__
 
 __runREonMETA_parallel.sh__
   * creates job files for parallel RE run of multiple samples
-  * needs list.txt
+  * needs [list.txt](list.txt)
 
 __makeREsummaryMETA.sh__
   * summary of the previous step
-  * needs listGS.txt
-  * creates tables and plots based on automated annotation (using REplot.R)
+  * needs [listGS.txt](listGS.txt)
+  * creates tables and plots based on automated annotation (using [REplot.R](REplot.R))
 
 __runREComparativeOnMETA.sh__
   * comparative RE run
-  * needs listComparative.txt
-  * creates a comparative plot and a network based on the number of edges among samples (using REphylo.R)
+  * needs [listComparative.txt](listComparative.txt)
+  * creates a comparative plot and a network based on the number of edges among samples (using [REphylo.R](REphylo.R))
