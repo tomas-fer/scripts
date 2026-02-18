@@ -1,0 +1,5 @@
+GenusA-species1_S001
+GenusA-species2_S002
+GenusB-species1_S003
+GenusB-species2_S004
+GenusC-species1_S005
