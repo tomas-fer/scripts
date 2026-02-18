@@ -1,0 +1,45 @@
+#Instructions for running RepeatExplorer on MetaCentrum
+#scripts are on GitHub
+#https://github.com/tomas-fer/scripts/tree/master/RepeatExplorer
+#Tomas Fer, 2026, tomas.fer@natur.cuni.cz
+
+1. Prepare FASTQ files without Hyb-Seq on-target reads
+Copy BAM files (results of HybPhyloMaker run, in the folder exons/21mapped) to any folder (hereafter called 'folder')
+Download the script (anywhere, e.g. your home on skirit):
+wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/makeUnmappedReadsSummaryMETA.sh
+Edit variables (folder, server) and submit the script (qsub outputUNMAPPEDfomBAMasFASTQ.sh)
+This script generates particular scripts for all BAM files (*.sh).
+Navigate to the 'folder' with BAMs and run 'submitJobs.sh' (./submitJobs.sh)
+Wait until all jobs are finished.
+In the 'folder' now should be subfolders for every sample, each includes the original BAM file, a pair of FASTQ.gz unmapped (off target) reads and a text file with number of reads (nr. pairs).
+
+2. Make a summary of raw unmapped reads
+Download the script (anywhere, e.g. your home on skirit):
+wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/makeUnmappedReadsSummaryMETA.sh
+Submit the script (qsub makeUnmappedReadsSummaryMETA.sh)
+or (alternativelly) run this one-liner in the 'folder' with sample subfolders:
+for i in $(ls -l | grep "^d" | awk '{print $9}'); do cat ${i}/${i}_unmapped_nrReads.txt >> unmapped_reads_summary.txt; done
+In the file 'unmapped_reads_summary.txt' is the summary of read pairs for all samples
+(This means that total number of reads is double! RepeatExplorer subsampling works with number of reads, not read pairs. This means that for next script all numbers should be multiplied by 2 and for RepeatExplorer subsampling (parameter -s) select the number that is equal/smaller than the lowest value).
+
+3. Create and run RE jobs
+Important: prior to the first run of the script you need to download RepeatExplorer Singularity image (SIF) by running (e.g., in your home on skirit):
+singularity pull repex_tarean_0.3.12.sif library://repeatexplorer/default/repex_tarean:0.3.12-7a7dc9e
+Download the script (anywhere, e.g. your home on skirit):
+wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/runREonMETA_parallel.sh
+Read the instructions at the beginning of the script, prepare the file 'list.txt' in the 'folder', edit variables (server, folder, subsample, maxmem, repex), edit job parameters on lines 42-43 (preset values are OK for preset subsampling [250000], increase it accordingly when higher number of reads are subsampled) and submit the script (qsub runREonMETA_parallel.sh).
+This script generates particular scripts 'RE_*.sh' in the set 'folder'), run 'submitREjobs.sh' (./submitREjobs.sh) in that 'folder'.
+Wait until all jobs are finished (it takes 1-3 hours with 250000 reads.
+There will be *.tar.gz file with RE results in every subfolder.
+
+4. Summary of automated cluster annotation using the script 'REplot.R'
+Download the script (anywhere, e.g. your home on skirit):
+wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/makeREsummaryMETA.sh
+Read the instructions at the beginning of the script, prepare the file 'listGS.txt' in the 'folder', edit variables (server, folder) and submit the script (qsub makeREsummaryMETA.sh).
+This script creates tables in every subfolder and summary tables in the 'folder' (e.g.,  RE_sumpropgenMb.txt) and also PDFs with barplots for all samples (e.g., REgen.pdf); look at the description at the beginning of the script.
+
+5. Comparative RE analysis
+Download the script (anywhere, e.g. your home on skirit):
+wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/runREComparativeOnMETA.sh
+Read the instructions at the beginning of the script, prepare the file 'listComparative.txt' in the 'folder', edit variables (server, folder, prefixlength, subsample, maxmem, repex), edit job parameters on lines 3-4 and submit the script (qsub runREComparativeOnMETA.sh).
+It creates file 're_output_comparative${subsample}.tar.gz' with compressed results, figure with comparative plots and PDFs with networs based on number of edges between samples. Look at the description at the beginning of the script for more details.
