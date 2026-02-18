@@ -48,7 +48,7 @@ cd ${folder}
 #Check R script
 if [ ! -f "REplot.R" ]; then
 	echo -e "Downloading REplot.R\n"
-	wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/REplot.R
+	wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/REplot.R
 	echo 
 fi
 
