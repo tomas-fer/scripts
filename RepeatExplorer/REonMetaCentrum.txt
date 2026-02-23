@@ -2,11 +2,12 @@
 #scripts are on GitHub
 #https://github.com/tomas-fer/scripts/tree/master/RepeatExplorer
 #Tomas Fer, 2026, tomas.fer@natur.cuni.cz
+#v.0.0.2 (23.2.2026)
 
 1. Prepare FASTQ files without Hyb-Seq on-target reads
 Copy BAM files (results of HybPhyloMaker run, in the folder exons/21mapped) to any folder (hereafter called 'folder')
 Download the script (anywhere, e.g. your home on skirit):
-wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/makeUnmappedReadsSummaryMETA.sh
+wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/outputUNMAPPEDfomBAMasFASTQ.sh
 Edit variables (folder, server) and submit the script (qsub outputUNMAPPEDfomBAMasFASTQ.sh)
 This script generates particular scripts for all BAM files (*.sh).
 Navigate to the 'folder' with BAMs and run 'submitJobs.sh' (./submitJobs.sh)
@@ -27,9 +28,9 @@ Important: prior to the first run of the script you need to download RepeatExplo
 singularity pull repex_tarean_0.3.12.sif library://repeatexplorer/default/repex_tarean:0.3.12-7a7dc9e
 Download the script (anywhere, e.g. your home on skirit):
 wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/runREonMETA_parallel.sh
-Read the instructions at the beginning of the script, prepare the file 'list.txt' in the 'folder', edit variables (server, folder, subsample, maxmem, repex), edit job parameters on lines 42-43 (preset values are OK for preset subsampling [250000], increase it accordingly when higher number of reads are subsampled) and submit the script (qsub runREonMETA_parallel.sh).
+Read the instructions at the beginning of the script, prepare the file 'list.txt' in the 'folder', edit variables (server, folder, subsample, mincl, maxmem, repex), edit job parameters on lines 43-44 (preset values are OK for preset subsampling [250000], increase it accordingly when higher number of reads are subsampled) and submit the script (qsub runREonMETA_parallel.sh).
 This script generates particular scripts 'RE_*.sh' in the set 'folder'), run 'submitREjobs.sh' (./submitREjobs.sh) in that 'folder'.
-Wait until all jobs are finished (it takes 1-3 hours with 250000 reads.
+Wait until all jobs are finished (it takes 1-3(-6) hours with 250000 reads).
 There will be *.tar.gz file with RE results in every subfolder.
 
 4. Summary of automated cluster annotation using the script 'REplot.R'
@@ -41,5 +42,5 @@ This script creates tables in every subfolder and summary tables in the 'folder'
 5. Comparative RE analysis
 Download the script (anywhere, e.g. your home on skirit):
 wget https://raw.githubusercontent.com/tomas-fer/scripts/refs/heads/master/RepeatExplorer/runREComparativeOnMETA.sh
-Read the instructions at the beginning of the script, prepare the file 'listComparative.txt' in the 'folder', edit variables (server, folder, prefixlength, subsample, maxmem, repex), edit job parameters on lines 3-4 and submit the script (qsub runREComparativeOnMETA.sh).
+Read the instructions at the beginning of the script, prepare the file 'listComparative.txt' in the 'folder', edit variables (server, folder, prefixlength, subsample, mincl, maxmem, repex), edit job parameters on lines 3-4 and submit the script (qsub runREComparativeOnMETA.sh).
 It creates file 're_output_comparative${subsample}.tar.gz' with compressed results, figure with comparative plots and PDFs with networs based on number of edges between samples. Look at the description at the beginning of the script for more details.
