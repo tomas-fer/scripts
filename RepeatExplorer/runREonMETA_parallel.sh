@@ -20,14 +20,15 @@
 #- ${sample}_CLUSTER_TABLE.csv
 #
 #Tomas Fer, 2026, tomas.fer@natur.cuni.cz
-#v.0.0.4
+#v.0.0.4 (23.6.2026)
 #--------------------------------------------------------------------------------------------
 
 server=brno12-cerit #MetaCentrum output (OU) files
 folder="/storage/${server}/home/${LOGNAME}/RE"
 suffix="_unmapped" #leave unchanged if data prepared with 'outputUNMAPPEDfomBAMasFASTQ.sh'
-subsample=250000 #nr of reads (not pairs!) - subsampling by RepeatExplorer
-maxmem=512000000 #in kB (must be less than 2000000000. i.e. 2TB)
+subsample=250000 #nr of reads (not pairs!) - subsampling by RepeatExplorer (parameter -s)
+mincl=0.01 #percentage of clusters for detailed analysis, i.e. the minimum size of cluster (parameter -m)
+maxmem=512000000 #in kB (must be less than 2000000000. i.e. 2TB) (parameter -r)
 #path to RepeatExplorer SIF
 #should be downloaded prior running this script using, e.g.
 #singularity pull repex_tarean_0.3.12.sif library://repeatexplorer/default/repex_tarean:0.3.12-7a7dc9e
@@ -39,7 +40,7 @@ touch submitREjobs.sh
 for sample in $(cat list.txt); do
 	echo '#!/bin/bash' >> RE_${sample}.sh
 	echo '#----------------MetaCentrum----------------' >> RE_${sample}.sh
-	echo '#PBS -l walltime=04:00:00' >> RE_${sample}.sh
+	echo '#PBS -l walltime=12:00:00' >> RE_${sample}.sh
 	echo '#PBS -l select=1:ncpus=16:mem=64gb:scratch_local=64gb' >> RE_${sample}.sh
 	echo '#PBS -j oe' >> RE_${sample}.sh
 	echo '#PBS -o /storage/'"$server/home/$LOGNAME" >> RE_${sample}.sh
@@ -79,7 +80,7 @@ for sample in $(cat list.txt); do
 	echo 'seqtk seq -A ${sample}${suffix}_merged.fastq > ${sample}${suffix}_merged.fasta' >> RE_${sample}.sh
 	echo '#run RepeatExplorer (and create a logfile)' >> RE_${sample}.sh
 	echo 'echo -e "\nRunning RE..."' >> RE_${sample}.sh
-	echo 'singularity exec -e --bind ${PWD}:/data/ repex_tarean seqclust -r ${maxmem} -s ${subsample} -C -l RE_${sample}.log -p -v /data/${sample} /data/${sample}${suffix}_merged.fasta' >> RE_${sample}.sh
+	echo 'singularity exec -e --bind ${PWD}:/data/ repex_tarean seqclust -m ${mincl}-r ${maxmem} -s ${subsample} -C -l RE_${sample}.log -p -v /data/${sample} /data/${sample}${suffix}_merged.fasta' >> RE_${sample}.sh
 	echo '#copy annotation history and logfile back home' >> RE_${sample}.sh
 	echo 'cp ${sample}/CLUSTER_TABLE.csv ${folder}/${sample}/${sample}_CLUSTER_TABLE.csv' >> RE_${sample}.sh
 	echo 'cp RE_${sample}.log ${folder}/${sample}' >> RE_${sample}.sh
