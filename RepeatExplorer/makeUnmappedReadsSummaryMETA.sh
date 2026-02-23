@@ -7,6 +7,9 @@
 #PBS -m abe
 #-------------------------------------------
 #Summarizes number of unmapped reads from BAM files
+#Tomas Fer, 2026, tomas.fer@natur.cuni.cz
+#v.0.0.2 (23.2.2026)
+#-------------------------------------------
 
 server=brno12-cerit
 folder="/storage/${server}/home/${LOGNAME}/RE"
@@ -15,3 +18,5 @@ cd ${folder}
 for i in $(ls -l | grep ^d | awk '{ print $9 }'); do
 	cat ${i}/*.txt >> unmappedReadsSummary.txt
 done
+
+echo -e "Finished... (results in ${folder}/unmappedReadsSummary.txt)\n"
