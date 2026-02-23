@@ -2,7 +2,7 @@
 #--------------------------------------------------------------------------------------------
 # HybPhyloMaker: create barplots based on RepeatExplorer2 individual results
 # https://github.com/tomas-fer/HybPhyloMaker
-# v.1.8.0b
+# v.1.8.0c
 # Tomas Fer, 2026
 # tomas.fer@natur.cuni.cz
 #--------------------------------------------------------------------------------------------
@@ -25,7 +25,8 @@ icols <- c("#e69570","#7aa3a7","#A77B7E","#d3cc33","#6a943d","#dd8da1","#e75a68"
 pdf(file="REgen.pdf")
 par(mar=c(5,10,5,3)) #set margins (bottom, left, top, right) - might need to adjust
 par(xpd=TRUE) #allow plotting legend outside the plot area
-barplot(m, horiz = TRUE, col=icols, las = 1) #las=1 - labels horizontally
+par(lwd = 0.5)
+barplot(m, horiz = TRUE, col=icols, las = 1, cex.names = 0.5) #las=1 - labels horizontally
 legend("topright", legend=rownames(m), fill=icols, ncol=3, inset=c(0,-0.18), bty="n") #inset need to be adjusted
 title(xlab = "Genome size [Mb/1C]")
 dev.off()
@@ -34,7 +35,8 @@ dev.off()
 pdf(file="REgenPerc.pdf")
 par(mar=c(5,10,5,3)) #set margins (bottom, left, top, right) - might need to adjust
 par(xpd=TRUE) #allow plotting legend outside the plot area
-barplot(m2perc, horiz = TRUE, col=icols, las = 1) #las=1 - labels horizontally
+par(lwd = 0.5)
+barplot(m2perc, horiz = TRUE, col=icols, las = 1, cex.names = 0.5) #las=1 - labels horizontally
 legend("topright", legend=rownames(m2), fill=icols, ncol=3, inset=c(0,-0.18), bty="n") #inset need to be adjusted
 title(xlab = "Repeat proportion [%]")
 dev.off()
@@ -53,7 +55,8 @@ icols <- c("#e69570","#7aa3a7","#A77B7E","#d3cc33","#6a943d","#dd8da1","#e75a68"
 pdf(file="REsimple.pdf")
 par(mar=c(5,10,5,3)) #set margins (bottom, left, top, right) - might need to adjust
 par(xpd=TRUE) #allow plotting legend outside the plot area
-barplot(m, horiz = TRUE, col=icols, las = 1) #las=1 - labels horizontally
+par(lwd = 0.5)
+barplot(m, horiz = TRUE, col=icols, las = 1, cex.names = 0.5) #las=1 - labels horizontally
 legend("topright", legend=rownames(m), fill=icols, ncol=3, inset=c(0,-0.18), bty="n") #inset need to be adjusted
 title(xlab = "Genome size [Mb/1C]")
 dev.off()
@@ -62,7 +65,8 @@ dev.off()
 pdf(file="REsimplePerc.pdf")
 par(mar=c(5,10,5,3)) #set margins (bottom, left, top, right) - might need to adjust
 par(xpd=TRUE) #allow plotting legend outside the plot area
-barplot(m2perc, horiz = TRUE, col=icols, las = 1) #las=1 - labels horizontally
+par(lwd = 0.5)
+barplot(m2perc, horiz = TRUE, col=icols, las = 1, cex.names = 0.5) #las=1 - labels horizontally
 legend("topright", legend=rownames(m2), fill=icols, ncol=3, inset=c(0,-0.18), bty="n") #inset need to be adjusted
 title(xlab = "Repeat proportion [%]")
 dev.off()
