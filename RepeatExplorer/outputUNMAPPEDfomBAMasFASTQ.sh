@@ -10,7 +10,7 @@
 #and save the reads as pairs of 'fastq.gz' files
 #These files can be later use to run RepeatExplorer
 #Tomas Fer, 2026, tomas.fer@natur.cuni.cz
-#v.0.0.2
+#v.0.0.2 (23.2.2026)
 #--------------------------------------------------------------------------------------------
 
 #Specify folder (full path in MetaCentrum)
