@@ -43,7 +43,7 @@
 #- OEnumberEdges                       folder with NJ trees and consensus network(s)
 #
 #Tomas Fer, 2026, tomas.fer@natur.cuni.cz
-#v.0.0.3
+#v.0.0.5 (23.2.2026)
 #--------------------------------------------------------------------------------------------
 
 #Specify this before running the script!!!
@@ -51,7 +51,8 @@ server=brno12-cerit
 folder="/storage/${server}/home/${LOGNAME}/RE"
 suffix="_unmapped"
 prefixlength=5
-subsample=125000 #read pairs!!! (subsampling by seqtk)
+subsample=100000 #read pairs!!! (subsampling by seqtk)
+mincl=0.05
 maxmem=512000000 #in kB (must be less than 2000000000. i.e. 2TB)
 #path to RepeatExplorer SIF
 #should be downloaded prior running this script using, e.g.
@@ -103,7 +104,7 @@ cat prefix* > comparative_final.fasta
 rm prefix*
 #run RepeatExplorer
 echo "Running RE..."
-singularity exec -e --bind ${PWD}:/data/ repex_tarean seqclust -r ${maxmem} -C -l RE_comparative${subsample}.log -p --prefix_length ${prefixlength} -v /data/re_output_comparative${subsample} /data/comparative_final.fasta
+singularity exec -e --bind ${PWD}:/data/ repex_tarean seqclust -m ${mincl} -r ${maxmem} -C -l RE_comparative${subsample}.log -p --prefix_length ${prefixlength} -v /data/re_output_comparative${subsample} /data/comparative_final.fasta
 
 #Make a plot using R (see https://github.com/kavonrtep/revis/tree/master)
 echo -e "\nCreating plots..."
