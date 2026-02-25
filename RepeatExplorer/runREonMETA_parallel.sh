@@ -20,7 +20,7 @@
 #- ${sample}_CLUSTER_TABLE.csv
 #
 #Tomas Fer, 2026, tomas.fer@natur.cuni.cz
-#v.0.0.4 (23.6.2026)
+#v.0.0.5 (25.6.2026)
 #--------------------------------------------------------------------------------------------
 
 server=brno12-cerit #MetaCentrum output (OU) files
@@ -51,6 +51,7 @@ for sample in $(cat list.txt); do
 	echo 'sample='"${sample}" >> RE_${sample}.sh
 	echo 'suffix='"${suffix}" >> RE_${sample}.sh
 	echo 'subsample='"${subsample}" >> RE_${sample}.sh
+	echo 'mincl='"${mincl}" >> RE_${sample}.sh
 	echo 'maxmem='"${maxmem}" >> RE_${sample}.sh
 	echo 'repex='"${repex}" >> RE_${sample}.sh
 	echo '#download singularity image' >> RE_${sample}.sh
