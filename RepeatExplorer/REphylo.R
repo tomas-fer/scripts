@@ -2,8 +2,8 @@
 #--------------------------------------------------------------------------------------------
 # HybPhyloMaker: create consensus network from RepeatExplorer2 comparative results
 # https://github.com/tomas-fer/HybPhyloMaker
-# v.1.8.0a
-# Tomas Fer, 2025
+# v.1.8.0b
+# Tomas Fer, 2026
 # tomas.fer@natur.cuni.cz
 #--------------------------------------------------------------------------------------------
 #go to the folder seqclust/clustering/clusters and run following commands to create a folder with all renamed matrices:
@@ -57,6 +57,7 @@ TreeFromDistMat <- function(file) {
 print("Creating NJ trees...")
 treesRE <- lapply(mat_files, TreeFromDistMat) #run the function over the list of trees
 treesRE <- treesRE[!is.na(treesRE)] #remove NAs produced by errors/warnings
+class(treesRE) <- "multiPhylo"
 write.tree(treesRE, file=paste0("trees", nrsamples, ".tre"))
 
 #calculate/plot consensus network (for thresholds from 0.05 to 0.15, step 0.01)
