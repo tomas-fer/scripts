@@ -43,7 +43,7 @@
 #- OEnumberEdges                       folder with NJ trees and consensus network(s)
 #
 #Tomas Fer, 2026, tomas.fer@natur.cuni.cz
-#v.0.0.5 (23.2.2026)
+#v.0.0.6 (26.2.2026)
 #--------------------------------------------------------------------------------------------
 
 #Specify this before running the script!!!
@@ -125,7 +125,7 @@ for i in $(ls -d dir*); do
 done
 cd OEnumberEdges${subsample}
 #change acronymes to full names (in all *.csv files)
-cat ../../../../../listComparative.txt | while read a b; do
+cat ../../../../../listComparative.txt | while read a b c; do
 	sed -i "s/$b/$a/" dir_CL*.csv
 done
 #make NJ trees for every cluster
